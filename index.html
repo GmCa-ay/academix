@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Academic & Life Productivity Hub</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- SortableJS for Drag and Drop -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+  
+  <!-- Custom External CSS -->
+  <link rel="stylesheet" href="styles.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#fef2f2',
+              100: '#fde3e1',
+              200: '#f8bcb6',
+              500: '#e0281c',
+              700: '#a3140a',
+              800: '#8a1109',
+              900: '#5c0c07'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#f4f7f4] dark:bg-[#1a0f0e] text-gray-800 dark:text-red-100 font-sans antialiased h-screen overflow-hidden">
+
+  <!-- AUTH SCREEN (LOCAL ACCOUNTS, NO BACKEND) -->
+  <div id="auth-overlay" class="h-screen w-screen flex items-center justify-center p-4 bg-[#f4f7f4] dark:bg-[#1a0f0e]">
+    <div class="w-full max-w-sm bg-white dark:bg-[#221310] p-8 rounded-3xl border border-red-100 dark:border-red-800/40 shadow-lg space-y-6">
+      <div class="text-center space-y-1">
+        <div class="w-12 h-12 rounded-2xl bg-brand-800 flex items-center justify-center text-white shadow-md mx-auto">
+          <i class="fa-solid fa-leaf text-lg"></i>
+        </div>
+        <h1 class="font-bold text-gray-900 dark:text-white text-xl mt-2">Academix Hub</h1>
+        <p class="text-xs text-gray-400 dark:text-red-400/60">Sign in to your personal workspace</p>
+      </div>
+
+      <!-- Login / Sign Up Toggle -->
+      <div class="bg-gray-100 dark:bg-red-950/80 p-1 rounded-xl flex text-xs font-semibold">
+        <button onclick="setAuthMode('login')" id="auth-tab-login" class="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-red-800 shadow-sm text-brand-800 dark:text-white transition-all">Log In</button>
+        <button onclick="setAuthMode('signup')" id="auth-tab-signup" class="flex-1 px-3 py-2 rounded-lg text-gray-500 dark:text-red-300/60 transition-all">Sign Up</button>
+      </div>
+
+      <div id="auth-error" class="hidden text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 rounded-xl px-3 py-2"></div>
+
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-3">
+        <div>
+          <label class="text-xs font-semibold text-gray-500 dark:text-red-300/70">Username</label>
+          <input type="text" id="auth-username" required autocomplete="username" class="mt-1 w-full p-3 rounded-xl border border-gray-200 dark:border-red-800 bg-gray-50 dark:bg-red-950/50 text-gray-800 dark:text-red-100 focus:outline-none focus:border-brand-500">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-500 dark:text-red-300/70">Password</label>
+          <input type="password" id="auth-password" required autocomplete="current-password" class="mt-1 w-full p-3 rounded-xl border border-gray-200 dark:border-red-800 bg-gray-50 dark:bg-red-950/50 text-gray-800 dark:text-red-100 focus:outline-none focus:border-brand-500">
+        </div>
+        <button type="submit" id="auth-submit-btn" class="w-full bg-brand-800 hover:bg-brand-900 text-white font-bold py-3 rounded-xl transition-all transform hover:scale-[1.02]">Log In</button>
+      </form>
+      <p class="text-[11px] text-center text-gray-400 dark:text-red-400/50">Accounts are stored only in this browser — there's no server involved.</p>
+    </div>
+  </div>
+
+  <!-- MAIN APP SHELL -->
+  <div id="app-shell" class="hidden h-full flex-col md:flex-row flex">
+
+  <!-- MOBILE HEADER -->
+  <div class="md:hidden bg-brand-900 text-white p-4 flex justify-between items-center z-50">
+    <div class="flex items-center space-x-2 font-bold text-lg">
+      <i class="fa-solid fa-leaf text-brand-200"></i>
+      <span>Academix Hub</span>
+    </div>
+    <div class="flex items-center space-x-3">
+      <button onclick="toggleDarkMode()" class="p-2 text-brand-200 hover:text-white"><i class="fa-solid fa-moon text-lg"></i></button>
+      <button onclick="toggleAiPanel()" class="p-2 text-brand-200 hover:text-white"><i class="fa-solid fa-wand-magic-sparkles text-lg"></i></button>
+      <button onclick="toggleSidebar()" class="p-2"><i class="fa-solid fa-bars text-xl"></i></button>
+    </div>
+  </div>
+
+  <!-- LEFT SIDEBAR -->
+  <aside id="sidebar" class="hidden md:flex flex-col w-64 bg-white dark:bg-[#20120f] border-r border-red-100 dark:border-red-900/50 p-5 space-y-6 z-40 transition-all duration-300 absolute md:relative inset-y-0 left-0 h-full shadow-lg md:shadow-none">
+    <!-- Brand Logo -->
+    <div class="flex items-center justify-between px-2">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-2xl bg-brand-800 flex items-center justify-center text-white shadow-md">
+          <i class="fa-solid fa-leaf text-lg"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-gray-900 dark:text-white text-lg leading-tight">Academix</h1>
+          <p class="text-xs text-brand-700 dark:text-brand-200 font-medium">Personal Hub</p>
+        </div>
+      </div>
+      <!-- Theme Switcher Button -->
+      <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-xl bg-gray-100 dark:bg-red-900/60 text-gray-600 dark:text-brand-200 hover:scale-110 transition-transform flex items-center justify-center" title="Toggle Light/Dark Mode">
+        <i class="fa-solid fa-moon dark:hidden"></i>
+        <i class="fa-solid fa-sun hidden dark:block"></i>
+      </button>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="space-y-2 flex-1">
+      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all transform hover:scale-[1.03] active:scale-[0.98] bg-brand-800 text-white shadow-md">
+        <i class="fa-solid fa-house w-5"></i><span>Main Dashboard</span>
+      </button>
+      <button onclick="switchTab('notes')" id="nav-notes" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold text-sm text-gray-600 dark:text-red-200/80 hover:bg-brand-50 dark:hover:bg-brand-900/40 hover:text-brand-800 dark:hover:text-red-100 transition-all transform hover:scale-[1.03] active:scale-[0.98]">
+        <i class="fa-solid fa-book-bookmark w-5"></i><span>Notes</span>
+      </button>
+      <button onclick="switchTab('google-meet')" id="nav-google-meet" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold text-sm text-gray-600 dark:text-red-200/80 hover:bg-brand-50 dark:hover:bg-brand-900/40 hover:text-brand-800 dark:hover:text-red-100 transition-all transform hover:scale-[1.03] active:scale-[0.98]">
+        <i class="fa-solid fa-video w-5"></i><span>Google Meeting</span>
+      </button>
+      <button onclick="switchTab('group-chats')" id="nav-group-chats" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold text-sm text-gray-600 dark:text-red-200/80 hover:bg-brand-50 dark:hover:bg-brand-900/40 hover:text-brand-800 dark:hover:text-red-100 transition-all transform hover:scale-[1.03] active:scale-[0.98]">
+        <i class="fa-solid fa-comments w-5"></i><span>Group Chats</span>
+      </button>
+      <button onclick="switchTab('todo')" id="nav-todo" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold text-sm text-gray-600 dark:text-red-200/80 hover:bg-brand-50 dark:hover:bg-brand-900/40 hover:text-brand-800 dark:hover:text-red-100 transition-all transform hover:scale-[1.03] active:scale-[0.98]">
+        <i class="fa-solid fa-list-check w-5"></i><span>To Do</span>
+      </button>
+      <button onclick="switchTab('grades')" id="nav-grades" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold text-sm text-gray-600 dark:text-red-200/80 hover:bg-brand-50 dark:hover:bg-brand-900/40 hover:text-brand-800 dark:hover:text-red-100 transition-all transform hover:scale-[1.03] active:scale-[0.98]">
+        <i class="fa-solid fa-graduation-cap w-5"></i><span>Grades</span>
+      </button>
+    </nav>
+
+    <!-- AI Toggle Button -->
+    <button onclick="toggleAiPanel()" class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-brand-50 dark:bg-red-950/60 text-brand-800 dark:text-red-200 font-medium text-xs hover:bg-brand-100 transition-all transform hover:scale-[1.02]">
+      <span class="flex items-center gap-2"><i class="fa-solid fa-sparkles text-brand-500"></i> AI Assistant</span>
+      <i class="fa-solid fa-sidebar text-xs"></i>
+    </button>
+
+    <!-- User Profile Card -->
+    <div class="pt-3 border-t border-gray-100 dark:border-red-900/50 flex items-center space-x-3 px-2">
+      <div class="w-9 h-9 rounded-full bg-brand-200 text-brand-900 font-extrabold flex items-center justify-center text-sm shadow-sm shrink-0" id="profile-avatar">
+        ?
+      </div>
+      <div class="overflow-hidden flex-1">
+        <p class="text-sm font-semibold text-gray-800 dark:text-red-100 truncate" id="profile-username">Guest</p>
+        <p class="text-xs text-gray-400 dark:text-red-400/60 truncate">Personal Workspace</p>
+      </div>
+      <button onclick="logoutUser()" class="w-8 h-8 rounded-lg text-gray-400 dark:text-red-400/60 hover:text-rose-500 dark:hover:text-rose-400 flex items-center justify-center shrink-0" title="Log Out">
+        <i class="fa-solid fa-right-from-bracket text-sm"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- CENTER MAIN CONTENT AREA -->
+  <main class="flex-1 h-full overflow-y-auto custom-scrollbar p-4 md:p-8 space-y-8">
+    
+    <!-- 1. MAIN DASHBOARD VIEW -->
+    <section id="view-dashboard" class="view-panel space-y-8">
+      <!-- Header Banner -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-brand-900 via-brand-800 to-red-800 p-6 rounded-3xl text-white shadow-lg">
+        <div>
+          <h2 class="text-2xl font-bold">Welcome back! 👋</h2>
+          <p class="text-brand-100 text-sm mt-1">Here is your organized academic workspace and daily class schedule.</p>
+        </div>
+        <div class="flex items-center space-x-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 text-xs">
+          <i class="fa-regular fa-calendar text-brand-200"></i>
+          <span id="current-date">Today's Overview</span>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE CLASS SCHEDULE COMPONENT (REPLACED GOOGLE CALENDAR) -->
+      <div class="bg-white dark:bg-[#221310] p-6 rounded-3xl border border-red-100 dark:border-red-800/40 shadow-sm space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="font-bold text-gray-900 dark:text-white text-lg flex items-center gap-2">
+              <i class="fa-solid fa-calendar-days text-brand-700 dark:text-brand-400"></i> Weekly Class Schedule
+            </h3>
+            <p class="text-xs text-gray-400 dark:text-red-300/70">Click on any day to view your specific timetable and room assignments.</p>
+          </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <span class="text-xs font-semibold bg-brand-50 dark:bg-red-950 text-brand-800 dark:text-red-200 px-3 py-1.5 rounded-xl border border-brand-100 dark:border-red-800/50 flex items-center gap-1.5">
+              <i class="fa-solid fa-clock text-brand-500"></i> ME Department
+            </span>
+            <button onclick="toggleQuickClassForm()" class="bg-brand-800 hover:bg-brand-900 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all transform hover:scale-[1.05] flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-plus"></i> Add Class
+            </button>
+          </div>
+        </div>
+
+        <!-- Inline Quick Add Class Bar -->
+        <div id="quick-class-bar" class="hidden bg-brand-50/50 dark:bg-red-950/50 p-4 rounded-2xl border border-red-200 dark:border-red-800/50 space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+            <input type="text" id="c-class-code" placeholder="Course Code (e.g. ME 231)" class="p-2.5 rounded-xl border border-gray-200 dark:border-red-800 bg-white dark:bg-[#2a1613] text-gray-800 dark:text-red-100 focus:outline-none">
+            <input type="text" id="c-class-title" placeholder="Class Title" class="p-2.5 rounded-xl border border-gray-200 dark:border-red-800 bg-white dark:bg-[#2a1613] text-gray-800 dark:text-red-100 focus:outline-none">
+            <input type="text" id="c-class-time" placeholder="Time (e.g. 07:00 AM - 08:30 AM)" class="p-2.5 rounded-xl border border-gray-200 dark:border-red-800 bg-white dark:bg-[#2a1613] text-gray-800 dark:text-red-100 focus:outline-none">
+            <input type="text" id="c-class-room" placeholder="Room" class="p-2.5 rounded-xl border border-gray-200 dark:border-red-800 bg-white dark:bg-[#2a1613] text-gray-800 dark:text-red-100 focus:outline-none">
+            <select id="c-class-type" class="p-2.5 rounded-xl border border-gray-200 dark:border-red-800 bg-white dark:bg-[#2a1613] text-gray-800 dark:text-red-100 focus:outline-none">
+              <option value="lecture">Lecture</option>
+              <option value="lab">Lab</option>
+              <option value="online">Online</option>
+              <option value="break">Break</option>
+            </select>
+          </div>
+          <div class="flex justify-end space-x-2">
+            <button onclick="toggleQuickClassForm()" class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:text-red-300">Cancel</button>
+            <button onclick="submitQuickClass()" class="px-4 py-1.5 text-xs bg-brand-800 text-white font-bold rounded-xl hover:bg-brand-900 transition-all">Save Class</button>
+          </div>
+        </div>
+
+        <!-- Day Selector Tabs -->
+        <div class="flex overflow-x-auto gap-2 pb-1 custom-scrollbar" id="schedule-day-tabs">
+          <button onclick="selectScheduleDay('Monday')" id="tab-Monday" class="schedule-day-tab px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 bg-brand-800 text-white shadow-sm">Monday</button>
+          <button onclick="selectScheduleDay('Tuesday')" id="tab-Tuesday" class="schedule-day-tab px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 bg-gray-100 dark:bg-red-950/80 text-gray-600 dark:text-red-300 hover:bg-brand-50">Tuesday</button>
+          <button onclick="selectScheduleDay('Wednesday')" id="tab-Wednesday" class="schedule-day-tab px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 bg-gray-100 dark:bg-red-950/80 text-gray-600 dark:text-red-300 hover:bg-brand-50">Wednesday</button>
+          <button onclick="selectScheduleDay('Thursday')" id="tab-Thursday" class="schedule-day-tab px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 bg-gray-100 dark:bg-red-950/80 text-gray-600 dark:text-red-300 hover:bg-brand-50">Thursday</button>
+          <button onclick="selectScheduleDay('Friday')" id="tab-Friday" class="schedule-day-tab px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 bg-gray-100 dark:bg-red-950/80 text-gray-600 dark:text-red-300 hover:bg-brand-50">Friday</button>
+          <button onclick="selectScheduleDay('Saturday')" id="tab-Saturday" class="schedule-day-tab px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 bg-gray-100 dark:bg-red-950/80 text-gray-600 dark:text-red-300 hover:bg-brand-50">Saturday</button>
+        </div>
+
+        <!-- Schedule Items List Container -->
+        <div id="schedule-list-container" class="space-y-3 min-h-[160px]">
+          <!-- Dynamically populated via JS -->
+        </div>
+      </div>
+
+      <!-- KANBAN TO-DO BOARD (NOTION STYLE) -->
+      <div class="bg-white dark:bg-[#221310] p-6 rounded-3xl border border-red-100 dark:border-red-800/40 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center space-x-3">
+            <h3 class="font-bold text-gray-900 dark:text-white text-lg flex items-center gap-2">
+              <i class="fa-solid fa-check-double text-brand-700 dark:text-brand-500"></i> Notion Task Board
+            </h3>
+            <div class="bg-gray-100 dark:bg-red-950/80 p-1 rounded-xl flex text-xs font-semibold">
+              <button onclick="filterTasks('academic')" id="tab-acad" class="px-3 py-1 rounded-lg bg-white dark:bg-red-800 shadow-sm text-brand-800 dark:text-white transition-all transform hover:scale-[1.05]">Academics</button>
+              <button onclick="filterTasks('personal')" id="tab-pers" class="px-3 py-1 rounded-lg text-gray-500 dark:text-red-300/60 hover:text-gray-800 transition-all transform hover:scale-[1.05]">Personal</button>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="toggleQuickTaskForm()" class="bg-brand-800 hover:bg-brand-900 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all transform hover:scale-[1.05] flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-plus"></i> Add Task
+            </button>
+          </div>
+        </div>
+
+        <!-- Inline Quick Add Task Bar -->
+        <div id="quick-task-bar" class="hidden bg-brand-50/50 dark:bg-red-950/50 p-4 rounded-2xl border border-red-200 dark:border-red-800/50 space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+            <input type="text" id="q-task-title" placeholder="Task Name..." class="p-2.5 rounded-xl border border-gray-200 dark:border-red-800 bg-white dark:bg-[#2a1613] text-gray-800 dark:text-red-100 focus:outline-none">
+            <input type="text" id="q-task-subject" placeholder="Course / Subject..." class="p-2.5 rounded-xl border border-gray-200 dark:border-red-800 bg-white dark:bg-[#2a1613] text-gray-800 dark:text-red-100 focus:outline-none">
+            <select id="q-task-prio" class="p-2.5 rounded-xl border border-gray-200 dark:border-red-800 bg-white dark:bg-[#2a1613] text-gray-800 dark:text-red-100 focus:outline-none">
+              <option value="high">🔴 High Priority</option>
+              <option value="med" selected>🟡 Medium Priority</option>
+              <option value="low">🟢 Low Priority</option>
+            </select>
+            <input type="text" id="q-task-date" placeholder="Due Date (e.g. Fri, Aug 13)" class="p-2.5 rounded-xl border border-gray-200 dark:border-red-800 bg-white dark:bg-[#2a1613] text-gray-800 dark:text-red-100 focus:outline-none">
+          </div>
+          <div class="flex justify-end space-x-2">
+            <button onclick="toggleQuickTaskForm()" class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:text-red-300">Cancel</button>
+            <button onclick="submitQuickTask()" class="px-4 py-1.5 text-xs bg-brand-800 text-white font-bold rounded-xl hover:bg-brand-900 transition-all">Save Task</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- High Priority Column -->
+          <div class="bg-rose-50/60 dark:bg-rose-950/20 p-4 rounded-2xl border border-rose-100 dark:border-rose-900/30">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider bg-rose-100 dark:bg-rose-900/50 px-2.5 py-1 rounded-md">🔴 High Priority</span>
+              <span class="text-xs font-semibold text-rose-400" id="count-high">0</span>
+            </div>
+            <div id="col-high" class="kanban-col space-y-3 min-h-[120px]">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Medium Priority Column -->
+          <div class="bg-amber-50/60 dark:bg-amber-950/20 p-4 rounded-2xl border border-amber-100 dark:border-amber-900/30">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider bg-amber-100 dark:bg-amber-900/50 px-2.5 py-1 rounded-md">🟡 Medium Priority</span>
+              <span class="text-xs font-semibold text-amber-400" id="count-med">0</span>
+            </div>
+            <div id="col-med" class="kanban-col space-y-3 min-h-[120px]">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Low Priority Column -->
+          <div class="bg-red-50/60 dark:bg-red-950/20 p-4 rounded-2xl border border-red-100 dark:border-red-900/30">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-bold text-brand-800 dark:text-red-300 uppercase tracking-wider bg-brand-100 dark:bg-red-900/50 px-2.5 py-1 rounded-md">🟢 Low Priority</span>
+              <span class="text-xs font-semibold text-brand-600" id="count-low">0</span>
+            </div>
+            <div id="col-low" class="kanban-col space-y-3 min-h-[120px]">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GOOGLE DOCS NOTES SUMMARY -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="font-bold text-gray-900 dark:text-white text-lg flex items-center gap-2">
+            <i class="fa-solid fa-file-lines text-brand-700 dark:text-brand-500"></i> Google Docs Class Notes
+          </h3>
+          <button onclick="switchTab('notes')" class="text-xs text-brand-700 dark:text-brand-300 font-semibold hover:underline">View All (<span id="notes-total-count">0</span>) →</button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="dashboard-notes-grid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- CLASS MEETINGS & SCROLLABLE GROUP CHATS -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Google Meet Links -->
+        <div class="bg-white dark:bg-[#221310] p-6 rounded-3xl border border-red-100 dark:border-red-800/40 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-gray-900 dark:text-white text-md flex items-center gap-2">
+              <i class="fa-solid fa-video text-red-600"></i> Google Meet Rooms
+            </h3>
+            <button onclick="switchTab('google-meet')" class="text-xs text-brand-700 dark:text-brand-300 font-semibold hover:underline">See All →</button>
+          </div>
+          <div class="space-y-2.5" id="dashboard-meets-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Scrollable Messenger Group Chats Card -->
+        <div class="bg-white dark:bg-[#221310] p-6 rounded-3xl border border-red-100 dark:border-red-800/40 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-gray-900 dark:text-white text-md flex items-center gap-2">
+              <i class="fa-solid fa-comments text-brand-700 dark:text-brand-400"></i> Messenger Group Chats
+            </h3>
+            <span class="text-[10px] bg-brand-100 dark:bg-red-900 text-brand-900 dark:text-red-100 px-2 py-0.5 rounded-full font-bold">Scrollable List</span>
+          </div>
+          <!-- Scroll Container -->
+          <div class="max-h-64 overflow-y-auto custom-scrollbar space-y-2.5 pr-1" id="dashboard-chats-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. DEDICATED NOTES PANEL -->
+    <section id="view-notes" class="view-panel hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Google Docs Class Notes</h2>
+          <p class="text-gray-500 dark:text-red-300/70 text-sm">Direct shortcuts to your official class documents. Opens in a new tab.</p>
+        </div>
+        <button onclick="toggleQuickNoteForm()" class="bg-brand-800 hover:bg-brand-900 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all transform hover:scale-[1.05] flex items-center gap-1.5 shadow-sm self-start sm:self-auto">
+          <i class="fa-solid fa-plus"></i> Add Note
+        </button>
+      </div>
+
+      <!-- Inline Quick Add Note Bar -->
+      <div id="quick-note-bar" class="hidden bg-brand-50/50 dark:bg-red-950/50 p-4 rounded-2xl border border-red-200 dark:border-red-800/50 space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <input type="text" id="c-note-subject" placeholder="Subject Name" class="p-2.5 rounded-xl border border-gray-200 dark:border-red-800 bg-white dark:bg-[#2a1613] text-gray-800 dark:text-red-100 focus:outline-none">
+          <input type="text" id="c-note-url" placeholder="Google Docs URL" class="p-2.5 rounded-xl border border-gray-200 dark:border-red-800 bg-white dark:bg-[#2a1613] text-gray-800 dark:text-red-100 focus:outline-none">
+        </div>
+        <div class="flex justify-end space-x-2">
+          <button onclick="toggleQuickNoteForm()" class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:text-red-300">Cancel</button>
+          <button onclick="submitQuickNote()" class="px-4 py-1.5 text-xs bg-brand-800 text-white font-bold rounded-xl hover:bg-brand-900 transition-all">Save Note</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="full-notes-grid">
+        <!-- Dynamically populated -->
+      </div>
+    </section>
+
+    <!-- 3. DEDICATED GOOGLE MEETINGS PANEL -->
+    <section id="view-google-meet" class="view-panel hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Google Meet Links</h2>
+          <p class="text-gray-500 dark:text-red-300/70 text-sm">Join your online lectures and virtual classrooms with one click.</p>
+        </div>
+        <button onclick="toggleQuickMeetForm()" class="bg-brand-800 hover:bg-brand-900 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all transform hover:scale-[1.05] flex items-center gap-1.5 shadow-sm self-start sm:self-auto">
+          <i class="fa-solid fa-plus"></i> Add Meet Link
+        </button>
+      </div>
+
+      <!-- Inline Quick Add Meet Bar -->
+      <div id="quick-meet-bar" class="hidden bg-brand-50/50 dark:bg-red-950/50 p-4 rounded-2xl border border-red-200 dark:border-red-800/50 space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <input type="text" id="c-meet-subject" placeholder="Subject Name" class="p-2.5 rounded-xl border border-gray-200 dark:border-red-800 bg-white dark:bg-[#2a1613] text-gray-800 dark:text-red-100 focus:outline-none">
+          <input type="text" id="c-meet-url" placeholder="Google Meet URL" class="p-2.5 rounded-xl border border-gray-200 dark:border-red-800 bg-white dark:bg-[#2a1613] text-gray-800 dark:text-red-100 focus:outline-none">
+        </div>
+        <div class="flex justify-end space-x-2">
+          <button onclick="toggleQuickMeetForm()" class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:text-red-300">Cancel</button>
+          <button onclick="submitQuickMeet()" class="px-4 py-1.5 text-xs bg-brand-800 text-white font-bold rounded-xl hover:bg-brand-900 transition-all">Save Link</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="full-meets-grid">
+        <!-- Dynamically populated -->
+      </div>
+    </section>
+
+    <!-- 4. DEDICATED GROUP CHATS PANEL -->
+    <section id="view-group-chats" class="view-panel hidden space-y-6">
+      <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Class Messenger & Group Chats</h2>
+          <p class="text-gray-500 dark:text-red-300/70 text-sm">Quick access to all your course section group chats in one scrollable menu.</p>
+        </div>
+        <button onclick="toggleQuickChatForm()" class="bg-brand-800 hover:bg-brand-900 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all transform hover:scale-[1.05] flex items-center gap-1.5 shadow-sm self-start sm:self-auto">
+          <i class="fa-solid fa-plus"></i> Add Group Chat
+        </button>
+      </div>
+
+      <!-- Inline Quick Add Chat Bar -->
+      <div id="quick-chat-bar" class="hidden bg-brand-50/50 dark:bg-red-950/50 p-4 rounded-2xl border border-red-200 dark:border-red-800/50 space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <input type="text" id="c-chat-subject" placeholder="Subject Name" class="p-2.5 rounded-xl border border-gray-200 dark:border-red-800 bg-white dark:bg-[#2a1613] text-gray-800 dark:text-red-100 focus:outline-none">
+          <input type="text" id="c-chat-url" placeholder="Group Chat URL" class="p-2.5 rounded-xl border border-gray-200 dark:border-red-800 bg-white dark:bg-[#2a1613] text-gray-800 dark:text-red-100 focus:outline-none">
+        </div>
+        <div class="flex justify-end space-x-2">
+          <button onclick="toggleQuickChatForm()" class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:text-red-300">Cancel</button>
+          <button onclick="submitQuickChat()" class="px-4 py-1.5 text-xs bg-brand-800 text-white font-bold rounded-xl hover:bg-brand-900 transition-all">Save Chat</button>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-[#221310] p-6 rounded-3xl border border-red-100 dark:border-red-800/40 shadow-sm">
+        <div class="max-h-[500px] overflow-y-auto custom-scrollbar space-y-3 pr-2" id="full-chats-grid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. DEDICATED TO DO PANEL -->
+    <section id="view-todo" class="view-panel hidden space-y-6">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">To Do Task Manager</h2>
+        <p class="text-gray-500 dark:text-red-300/70 text-sm">Add, manage, complete, or remove tasks manually or using the AI assistant.</p>
+      </div>
+
+      <!-- Add New Task Manual Form -->
+      <div class="bg-white dark:bg-[#221310] p-6 rounded-3xl border border-red-100 dark:border-red-800/40 shadow-sm space-y-4">
+        <h3 class="font-bold text-lg text-gray-900 dark:text-white flex items-center gap-2">
+          <i class="fa-solid fa-plus-circle text-brand-700 dark:text-brand-400"></i> Add New Task
+        </h3>
+        <form onsubmit="addNewTaskManual(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-sm">
+          <input type="text" id="todo-title" placeholder="Task Title (e.g., Chapter 1 Essay)" required class="p-3 rounded-xl border border-gray-200 dark:border-red-800 bg-gray-50 dark:bg-red-950/50 text-gray-800 dark:text-red-100 focus:outline-none focus:border-brand-500">
+          <input type="text" id="todo-subject" placeholder="Course / Subject" required class="p-3 rounded-xl border border-gray-200 dark:border-red-800 bg-gray-50 dark:bg-red-950/50 text-gray-800 dark:text-red-100 focus:outline-none focus:border-brand-500">
+          <select id="todo-priority" class="p-3 rounded-xl border border-gray-200 dark:border-red-800 bg-gray-50 dark:bg-red-950/50 text-gray-800 dark:text-red-100 focus:outline-none">
+            <option value="high">🔴 High Priority</option>
+            <option value="med" selected>🟡 Medium Priority</option>
+            <option value="low">🟢 Low Priority</option>
+          </select>
+          <select id="todo-category" class="p-3 rounded-xl border border-gray-200 dark:border-red-800 bg-gray-50 dark:bg-red-950/50 text-gray-800 dark:text-red-100 focus:outline-none">
+            <option value="academic">Academic</option>
+            <option value="personal">Personal</option>
+          </select>
+          <div class="flex gap-2">
+            <input type="text" id="todo-date" placeholder="Due Date" class="p-3 rounded-xl border border-gray-200 dark:border-red-800 bg-gray-50 dark:bg-red-950/50 text-gray-800 dark:text-red-100 focus:outline-none w-full">
+            <button type="submit" class="bg-brand-800 hover:bg-brand-900 text-white font-bold px-4 rounded-xl transition-all transform hover:scale-105 shrink-0">
+              Add
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Task List Container -->
+      <div class="bg-white dark:bg-[#221310] p-6 rounded-3xl border border-red-100 dark:border-red-800/40 shadow-sm space-y-4">
+        <h3 class="font-bold text-lg text-gray-900 dark:text-white">Active Task List</h3>
+        <div id="todo-full-list" class="space-y-3">
+          <!-- Dynamically Rendered -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. DEDICATED GRADE TRACKER PANEL -->
+    <section id="view-grades" class="view-panel hidden space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Course Grade Tracker</h2>
+          <p class="text-gray-500 dark:text-red-300/70 text-sm">Evaluation: <b>50% Class Standing Avg</b> + <b>50% Exam Avg</b>. Add, edit, or erase individual scores below!</p>
+        </div>
+        <button onclick="toggleQuickSubjectForm()" class="bg-brand-800 hover:bg-brand-900 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all transform hover:scale-[1.05] flex items-center gap-1.5 shadow-sm self-start md:self-auto">
+          <i class="fa-solid fa-plus"></i> Add Subject
+        </button>
+      </div>
+
+      <!-- Inline Quick Add Subject Bar -->
+      <div id="quick-subject-bar" class="hidden bg-brand-50/50 dark:bg-red-950/50 p-4 rounded-2xl border border-red-200 dark:border-red-800/50 space-y-3">
+        <div class="grid grid-cols-1 gap-2 text-xs">
+          <input type="text" id="c-subject-name" placeholder="Subject Name" class="p-2.5 rounded-xl border border-gray-200 dark:border-red-800 bg-white dark:bg-[#2a1613] text-gray-800 dark:text-red-100 focus:outline-none">
+        </div>
+        <div class="flex justify-end space-x-2">
+          <button onclick="toggleQuickSubjectForm()" class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:text-red-300">Cancel</button>
+          <button onclick="submitQuickSubject()" class="px-4 py-1.5 text-xs bg-brand-800 text-white font-bold rounded-xl hover:bg-brand-900 transition-all">Save Subject</button>
+        </div>
+      </div>
+
+      <!-- Subject Grade Cards Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="grades-cards-container">
+        <!-- Generated dynamically via JavaScript -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- RIGHT SIDEBAR: GEMINI AI PANEL -->
+  <aside id="ai-panel" class="w-full md:w-80 bg-white dark:bg-[#20120f] border-l border-red-100 dark:border-red-900/50 flex flex-col h-full z-40 transition-all duration-300 ease-in-out shrink-0">
+    <div class="p-4 border-b border-gray-100 dark:border-red-900/50 flex items-center justify-between bg-brand-50/50 dark:bg-red-950/40">
+      <div class="flex items-center space-x-2">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-red-500 to-brand-500 flex items-center justify-center text-white text-xs shadow-sm">
+          <i class="fa-solid fa-sparkles"></i>
+        </div>
+        <span class="font-bold text-gray-800 dark:text-white text-sm">Gemini Assistant</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <button onclick="changeGeminiKey()" class="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors p-1" title="Set / change Gemini API key">
+          <i class="fa-solid fa-key text-xs"></i>
+        </button>
+        <button onclick="toggleAiPanel()" class="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors p-1">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- AI Feed -->
+    <div id="ai-feed" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs custom-scrollbar">
+      <div class="bg-brand-50 dark:bg-red-950/60 p-3 rounded-2xl border border-brand-100 dark:border-red-900/40 text-brand-900 dark:text-red-200">
+        👋 <b>Hi there!</b> Ask me anything, or tell me to add a task, class, note, meet link, or group chat and I'll do it for you.
+      </div>
+    </div>
+
+    <!-- AI Input -->
+    <div class="p-4 border-t border-gray-100 dark:border-red-900/50 space-y-2 bg-white dark:bg-[#20120f]">
+      <div class="relative">
+        <textarea id="ai-input" rows="3" placeholder="e.g. add a task: essay due next friday in purposive communication" class="w-full p-3 pr-10 text-xs bg-gray-50 dark:bg-red-950/50 border border-gray-200 dark:border-red-800/50 rounded-xl text-gray-800 dark:text-red-100 focus:outline-none focus:border-brand-500 resize-none" onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); processAiInput(); }"></textarea>
+        <button onclick="processAiInput()" class="absolute right-2 bottom-3 w-7 h-7 bg-brand-800 text-white rounded-lg flex items-center justify-center hover:bg-brand-900 transition-all transform hover:scale-110">
+          <i class="fa-solid fa-arrow-up text-xs"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // SEED DATA — only used to pre-fill the built-in "Patrick" demo account.
+    // Every other/new account starts completely empty.
+    const DEFAULT_SCHEDULE = {
+      Monday: [
+        { id: 1, time: "07:00 AM - 08:30 AM", code: "EE 231", title: "Basic Electrical Engineering (Lec)", room: "TBA", type: "lecture" },
+        { id: 2, time: "10:00 AM - 11:30 AM", code: "GE Elect 2", title: "Gender and Society / Entrepreneurial Mind", room: "ME", type: "lecture" },
+        { id: 3, time: "11:30 AM - 01:00 PM", code: "BREAK", title: "Lunch Break", room: "--", type: "break" },
+        { id: 4, time: "01:00 PM - 02:30 PM", code: "Math 111E", title: "Engineering Data Analysis", room: "BH 30", type: "lecture" },
+        { id: 5, time: "04:00 PM - 05:30 PM", code: "Augustine 3", title: "Christian Morality", room: "Online", type: "online" }
+      ],
+      Tuesday: [
+        { id: 6, time: "07:00 AM - 08:30 AM", code: "GE 6", title: "Art Appreciation", room: "Online", type: "online" },
+        { id: 7, time: "08:30 AM - 10:00 AM", code: "ME 231", title: "Thermodynamics 1", room: "Online", type: "online" },
+        { id: 8, time: "10:00 AM - 01:00 PM", code: "BREAK", title: "Lunch Break", room: "--", type: "break" },
+        { id: 9, time: "01:00 PM - 04:00 PM", code: "ME 232a", title: "Workshop Theory and Practice (Lab)", room: "ME LAB", type: "lab" },
+        { id: 10, time: "04:30 PM - 06:00 PM", code: "ME 110", title: "Differential Equations", room: "BH 30", type: "lecture" }
+      ],
+      Wednesday: [
+        { id: 11, time: "10:00 AM - 11:30 AM", code: "GE 5", title: "Purposive Communication", room: "Online", type: "online" }
+      ],
+      Thursday: [
+        { id: 12, time: "07:00 AM - 10:00 AM", code: "EE 231a", title: "Basic Electrical Engineering (Lab)", room: "ECE LAB", type: "lab" },
+        { id: 13, time: "10:00 AM - 11:30 AM", code: "GE Elect 2", title: "Gender and Society / Entrepreneurial Mind", room: "Online", type: "online" },
+        { id: 14, time: "11:00 AM - 01:00 PM", code: "BREAK", title: "Lunch Break", room: "--", type: "break" },
+        { id: 15, time: "01:00 PM - 02:30 PM", code: "Math 111E", title: "Engineering Data Analysis", room: "BH 30", type: "lecture" },
+        { id: 16, time: "04:00 PM - 05:30 PM", code: "Augustine 3", title: "Christian Morality", room: "Online", type: "online" }
+      ],
+      Friday: [
+        { id: 17, time: "07:00 AM - 08:30 AM", code: "GE 6", title: "Art Appreciation", room: "Online", type: "online" },
+        { id: 18, time: "08:30 AM - 10:00 AM", code: "ME 231", title: "Thermodynamics 1", room: "BH 30 (CR)", type: "lecture" },
+        { id: 19, time: "04:30 PM - 06:00 PM", code: "Math 110", title: "Differential Equation", room: "BH 30", type: "lecture" }
+      ],
+      Saturday: [
+        { id: 20, time: "10:00 AM - 11:30 AM", code: "GE 5", title: "Purposive Communication", room: "Online", type: "online" },
+        { id: 21, time: "11:30 AM - 01:00 PM", code: "BREAK", title: "Lunch Break", room: "--", type: "break" },
+        { id: 22, time: "01:00 PM - 04:00 PM", code: "Mech 310", title: "Statics of Rigid Bodies", room: "No Room", type: "lecture" },
+        { id: 23, time: "04:00 PM - 06:00 PM", code: "PATHFIT 3", title: "Dance", room: "GYM", type: "lab" }
+      ]
+    };
+
+    const DEFAULT_NOTES = [
+      { id: 1, subject: "Gender and Society", url: "#" },
+      { id: 2, subject: "Art Appreciation", url: "https://docs.google.com/document/d/1_1uAg3Vhhd42ARFEIKbo5TlNvbDhW_ym/edit?usp=sharing" },
+      { id: 3, subject: "Basic Electrical Engineering", url: "https://docs.google.com/document/d/1Z5Iv8CpCkB2NJ8mSdGy23rD53irNJLYB/edit?usp=sharing" },
+      { id: 4, subject: "Statics of Rigid Bodies", url: "https://docs.google.com/document/d/12n6bbwFK-ZGrQd2Hn-dKObjuawQm8fAY/edit?usp=sharing" },
+      { id: 5, subject: "Purposive Communication", url: "https://docs.google.com/document/d/1jjO1a-W4BJyMyJQ7lSH149nv148PO6qW/edit?usp=sharing" },
+      { id: 6, subject: "Engineering Data Analysis", url: "https://docs.google.com/document/d/1qWqJOjS2iUdW2-JskBzciv5T4FuKIQJXlIRZvkOn9xw/edit?usp=sharing" },
+      { id: 7, subject: "Differential Equation", url: "https://docs.google.com/document/d/110a7eWOu1k7FCospDCFZ088BY8PEIYR7/edit?usp=sharing" }
+    ];
+
+    const DEFAULT_MEETS = [
+      { id: 1, subject: "Art Appreciation", url: "https://meet.google.com/fen-mayf-wwh" },
+      { id: 2, subject: "Purposive Communication", url: "https://meet.google.com/fen-mayf-wwh" },
+      { id: 3, subject: "Gender and Society", url: "https://meet.google.com/pvu-nwsy-jbk" },
+      { id: 4, subject: "Christian Morality", url: "https://meet.google.com/mos-jvgb-gss" }
+    ];
+
+    const DEFAULT_CHATS = [
+      { id: 1, subject: "Differential Equation", url: "https://www.facebook.com/messages/t/857543600455020" },
+      { id: 2, subject: "Statics and Rigid Bodies", url: "https://www.facebook.com/messages/t/1024656540336615" },
+      { id: 3, subject: "Basic Electrical Engineering", url: "https://www.facebook.com/messages/t/1744174793401960" },
+      { id: 4, subject: "Engineering Data Analysis", url: "https://www.facebook.com/messages/t/1393162329343581" },
+      { id: 5, subject: "Workshop Theory and Practice", url: "https://www.facebook.com/messages/t/27407126888986026" },
+      { id: 6, subject: "Pathfit 3", url: "https://www.facebook.com/messages/t/1394074098749194" },
+      { id: 7, subject: "Purposive Communication", url: "https://meet.google.com/jib-thwc-phf" },
+      { id: 8, subject: "Gender and Society", url: "#" },
+      { id: 9, subject: "Christian Morality", url: "https://www.facebook.com/messages/t/1044256337982254" }
+    ];
+
+    const DEFAULT_GRADES = [
+      { subject: "Gender and Society", cs: [{ id: 1, name: "Quiz 1", score: 95 }, { id: 2, name: "Infographic", score: 90 }], exam: [{ id: 1, name: "Midterm Exam", score: 92 }] },
+      { subject: "Art Appreciation", cs: [{ id: 1, name: "Critique Paper", score: 88 }], exam: [{ id: 1, name: "Midterm Exam", score: 90 }] },
+      { subject: "Basic Electrical Engineering", cs: [{ id: 1, name: "Lab Act 1", score: 85 }], exam: [{ id: 1, name: "Midterm Exam", score: 88 }] },
+      { subject: "Statics and Rigid Bodies", cs: [{ id: 1, name: "Problem Set 1", score: 90 }], exam: [{ id: 1, name: "Midterm Exam", score: 86 }] },
+      { subject: "Purposive Communication", cs: [{ id: 1, name: "Speech Task", score: 94 }], exam: [{ id: 1, name: "Midterm Exam", score: 92 }] },
+      { subject: "Engineering Data Analysis", cs: [{ id: 1, name: "Worksheet 1", score: 89 }], exam: [{ id: 1, name: "Midterm Exam", score: 91 }] },
+      { subject: "Differential Equation", cs: [{ id: 1, name: "Quiz 1", score: 86 }], exam: [{ id: 1, name: "Midterm Exam", score: 90 }] },
+      { subject: "Christian Morality", cs: [{ id: 1, name: "Reflection 1", score: 96 }], exam: [{ id: 1, name: "Midterm Exam", score: 94 }] },
+      { subject: "Workshop Theory and Practice", cs: [{ id: 1, name: "Practical 1", score: 92 }], exam: [{ id: 1, name: "Midterm Exam", score: 89 }] },
+      { subject: "Pathfit 3", cs: [{ id: 1, name: "Fitness Routine", score: 98 }], exam: [{ id: 1, name: "Practical Exam", score: 95 }] }
+    ];
+
+    function emptySchedule() {
+      return { Monday: [], Tuesday: [], Wednesday: [], Thursday: [], Friday: [], Saturday: [] };
+    }
+
+    // LIVE STATE — starts empty for every account; loaded per-user after login.
+    let scheduleState = emptySchedule();
+    let activeScheduleDay = "Monday";
+
+    function renderSchedule() {
+      const container = document.getElementById('schedule-list-container');
+      const dayClasses = scheduleState[activeScheduleDay] || [];
+
+      if (dayClasses.length === 0) {
+        container.innerHTML = `<div class="p-6 text-center text-gray-400 font-medium text-xs">No classes scheduled for ${activeScheduleDay}. Add one with "Add Class" above.</div>`;
+        return;
+      }
+
+      container.innerHTML = dayClasses.map(item => {
+        let typeBadge = '';
+        let borderClass = 'border-red-100 dark:border-red-900/40';
+
+        if (item.type === 'online') {
+          typeBadge = `<span class="bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1"><i class="fa-solid fa-wifi"></i> Online</span>`;
+        } else if (item.type === 'lab') {
+          typeBadge = `<span class="bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1"><i class="fa-solid fa-flask"></i> Lab</span>`;
+        } else if (item.type === 'break') {
+          typeBadge = `<span class="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1"><i class="fa-solid fa-utensils"></i> Break</span>`;
+          borderClass = 'border-amber-200/60 dark:border-amber-900/40 bg-amber-50/40 dark:bg-amber-950/20';
+        } else {
+          typeBadge = `<span class="bg-red-100 text-brand-800 dark:bg-red-950 dark:text-red-300 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1"><i class="fa-solid fa-chalkboard-user"></i> Lecture</span>`;
+        }
+
+        return `
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-gray-50/80 dark:bg-red-950/40 rounded-2xl border ${borderClass} gap-3 hover:shadow-sm transition-all group">
+            <div class="flex items-start sm:items-center space-x-3">
+              <div class="bg-white dark:bg-[#2a1613] p-2.5 rounded-xl border border-gray-100 dark:border-red-800/60 text-center shrink-0 min-w-[110px]">
+                <p class="text-[11px] font-bold text-gray-800 dark:text-red-200 flex items-center justify-center gap-1">
+                  <i class="fa-regular fa-clock text-brand-500 text-[10px]"></i> ${item.time}
+                </p>
+              </div>
+              <div>
+                <div class="flex items-center space-x-2">
+                  <span class="font-extrabold text-xs text-brand-800 dark:text-brand-300 uppercase">${item.code}</span>
+                  <span class="text-[10px] text-gray-400 font-medium">• ${item.room}</span>
+                </div>
+                <h4 class="font-semibold text-xs text-gray-800 dark:text-red-100 mt-0.5">${item.title}</h4>
+              </div>
+            </div>
+            <div class="self-end sm:self-auto flex items-center gap-2">
+              ${typeBadge}
+              <button onclick="deleteClassItem('${activeScheduleDay}', ${item.id})" class="text-gray-300 dark:text-gray-600 hover:text-rose-500 dark:hover:text-rose-400 transition-colors p-1" title="Delete Class">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectScheduleDay(day) {
+      activeScheduleDay = day;
+      document.querySelectorAll('.schedule-day-tab').forEach(tab => {
+        tab.className = "schedule-day-tab px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 bg-gray-100 dark:bg-red-950/80 text-gray-600 dark:text-red-300 hover:bg-brand-50";
+      });
+
+      const selectedTab = document.getElementById(`tab-${day}`);
+      if (selectedTab) {
+        selectedTab.className = "schedule-day-tab px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 bg-brand-800 text-white shadow-sm";
+      }
+
+      renderSchedule();
+    }
+
+    function toggleQuickClassForm() {
+      document.getElementById('quick-class-bar').classList.toggle('hidden');
+    }
+
+    function submitQuickClass() {
+      const code = document.getElementById('c-class-code').value.trim() || 'Untitled';
+      const title = document.getElementById('c-class-title').value.trim() || 'Untitled Class';
+      const time = document.getElementById('c-class-time').value.trim() || 'TBA';
+      const room = document.getElementById('c-class-room').value.trim() || 'TBA';
+      const type = document.getElementById('c-class-type').value;
+
+      if (!scheduleState[activeScheduleDay]) scheduleState[activeScheduleDay] = [];
+      scheduleState[activeScheduleDay].push({ id: Date.now(), time, code, title, room, type });
+
+      document.getElementById('c-class-code').value = '';
+      document.getElementById('c-class-title').value = '';
+      document.getElementById('c-class-time').value = '';
+      document.getElementById('c-class-room').value = '';
+      toggleQuickClassForm();
+      renderSchedule();
+      saveScheduleState();
+    }
+
+    function deleteClassItem(day, id) {
+      if (!scheduleState[day]) return;
+      scheduleState[day] = scheduleState[day].filter(i => i.id !== id);
+      renderSchedule();
+      saveScheduleState();
+    }
+
+    // LIVE LINKS STATE — starts empty for every account
+    let notesState = [];
+    let meetsState = [];
+    let chatsState = [];
+    let tasksState = [];
+    let currentTaskFilter = 'academic';
+    let gradesState = [];
+
+    const hasClaudeStorage = typeof window !== 'undefined' && window.storage && typeof window.storage.get === 'function';
+
+    const hasLocalStorage = (function () {
+      try {
+        const testKey = '__academix_test__';
+        window.localStorage.setItem(testKey, '1');
+        window.localStorage.removeItem(testKey);
+        return true;
+      } catch (err) {
+        return false;
+      }
+    })();
+
+    async function persistSave(key, value) {
+      const json = JSON.stringify(value);
+      let savedSomewhere = false;
+
+      if (hasClaudeStorage) {
+        try {
+          await window.storage.set(key, json);
+          savedSomewhere = true;
+        } catch (err) {
+          console.error(`Claude storage save failed for ${key}:`, err);
+        }
+      }
+
+      if (hasLocalStorage) {
+        try {
+          window.localStorage.setItem(key, json);
+          savedSomewhere = true;
+        } catch (err) {
+          console.error(`localStorage save failed for ${key}:`, err);
+        }
+      }
+
+      if (!savedSomewhere) {
+        console.warn(`No storage layer available — "${key}" will not persist after reload.`);
+      }
+    }
+
+    async function persistLoad(key) {
+      if (hasClaudeStorage) {
+        try {
+          const res = await window.storage.get(key);
+          if (res && typeof res.value === 'string') {
+            return JSON.parse(res.value);
+          }
+        } catch (err) {
+          // Read failed or key missing
+        }
+      }
+
+      if (hasLocalStorage) {
+        try {
+          const raw = window.localStorage.getItem(key);
+          if (raw) return JSON.parse(raw);
+        } catch (err) {
+          // Nothing usable in localStorage
+        }
+      }
+
+      return null;
+    }
+
+    let currentUsername = null;
+
+    function getUserKey(key) {
+      return `user::${currentUsername}::${key}`;
+    }
+
+    async function saveTasksState() {
+      await persistSave(getUserKey('tasksState'), tasksState);
+    }
+
+    async function saveGradesState() {
+      await persistSave(getUserKey('gradesState'), gradesState);
+    }
+
+    async function saveScheduleState() {
+      await persistSave(getUserKey('scheduleState'), scheduleState);
+    }
+
+    async function saveNotesState() {
+      await persistSave(getUserKey('notesState'), notesState);
+    }
+
+    async function saveMeetsState() {
+      await persistSave(getUserKey('meetsState'), meetsState);
+    }
+
+    async function saveChatsState() {
+      await persistSave(getUserKey('chatsState'), chatsState);
+    }
+
+    async function loadPersistedState() {
+      // Reset to empty defaults first so switching accounts never leaks the
+      // previous user's in-memory data into a fresh/empty account.
+      tasksState = [];
+      gradesState = [];
+      scheduleState = emptySchedule();
+      notesState = [];
+      meetsState = [];
+      chatsState = [];
+
+      const savedTasks = await persistLoad(getUserKey('tasksState'));
+      if (Array.isArray(savedTasks)) tasksState = savedTasks;
+
+      const savedGrades = await persistLoad(getUserKey('gradesState'));
+      if (Array.isArray(savedGrades)) gradesState = savedGrades;
+
+      const savedSchedule = await persistLoad(getUserKey('scheduleState'));
+      if (savedSchedule && typeof savedSchedule === 'object') scheduleState = savedSchedule;
+
+      const savedNotes = await persistLoad(getUserKey('notesState'));
+      if (Array.isArray(savedNotes)) notesState = savedNotes;
+
+      const savedMeets = await persistLoad(getUserKey('meetsState'));
+      if (Array.isArray(savedMeets)) meetsState = savedMeets;
+
+      const savedChats = await persistLoad(getUserKey('chatsState'));
+      if (Array.isArray(savedChats)) chatsState = savedChats;
+    }
+
+    // ===================== LOCAL ACCOUNT SYSTEM (NO BACKEND) =====================
+    const ACCOUNTS_KEY = 'academix_accounts';       // { username: password }
+    const SESSION_KEY = 'academix_current_user';
+    let authMode = 'login';
+
+    async function loadAccounts() {
+      const accounts = await persistLoad(ACCOUNTS_KEY);
+      return (accounts && typeof accounts === 'object') ? accounts : {};
+    }
+
+    async function saveAccounts(accounts) {
+      await persistSave(ACCOUNTS_KEY, accounts);
+    }
+
+    // Makes sure the built-in "Patrick" demo account exists (first run only)
+    // and is pre-loaded with the sample Mechanical Engineering data.
+    async function ensureDemoAccount() {
+      const accounts = await loadAccounts();
+      if (Object.keys(accounts).length === 0) {
+        accounts['Patrick'] = '12345678';
+        await saveAccounts(accounts);
+        await persistSave('user::Patrick::scheduleState', DEFAULT_SCHEDULE);
+        await persistSave('user::Patrick::notesState', DEFAULT_NOTES);
+        await persistSave('user::Patrick::meetsState', DEFAULT_MEETS);
+        await persistSave('user::Patrick::chatsState', DEFAULT_CHATS);
+        await persistSave('user::Patrick::gradesState', DEFAULT_GRADES);
+        await persistSave('user::Patrick::tasksState', []);
+      }
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      const tabLogin = document.getElementById('auth-tab-login');
+      const tabSignup = document.getElementById('auth-tab-signup');
+      const submitBtn = document.getElementById('auth-submit-btn');
+      const errorBox = document.getElementById('auth-error');
+      errorBox.classList.add('hidden');
+
+      if (mode === 'login') {
+        tabLogin.className = "flex-1 px-3 py-2 rounded-lg bg-white dark:bg-red-800 shadow-sm text-brand-800 dark:text-white transition-all";
+        tabSignup.className = "flex-1 px-3 py-2 rounded-lg text-gray-500 dark:text-red-300/60 transition-all";
+        submitBtn.innerText = 'Log In';
+      } else {
+        tabSignup.className = "flex-1 px-3 py-2 rounded-lg bg-white dark:bg-red-800 shadow-sm text-brand-800 dark:text-white transition-all";
+        tabLogin.className = "flex-1 px-3 py-2 rounded-lg text-gray-500 dark:text-red-300/60 transition-all";
+        submitBtn.innerText = 'Create Account';
+      }
+    }
+
+    function showAuthError(message) {
+      const errorBox = document.getElementById('auth-error');
+      errorBox.innerText = message;
+      errorBox.classList.remove('hidden');
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const username = document.getElementById('auth-username').value.trim();
+      const password = document.getElementById('auth-password').value;
+
+      if (!username || !password) {
+        showAuthError('Please fill in both fields.');
+        return;
+      }
+
+      const accounts = await loadAccounts();
+
+      if (authMode === 'login') {
+        if (!accounts.hasOwnProperty(username)) {
+          showAuthError('No account found with that username.');
+          return;
+        }
+        if (accounts[username] !== password) {
+          showAuthError('Incorrect password.');
+          return;
+        }
+        await logInAs(username);
+      } else {
+        if (accounts.hasOwnProperty(username)) {
+          showAuthError('That username is already taken.');
+          return;
+        }
+        accounts[username] = password;
+        await saveAccounts(accounts);
+        await logInAs(username);
+      }
+    }
+
+    async function logInAs(username) {
+      currentUsername = username;
+      await persistSave(SESSION_KEY, username);
+      await loadPersistedState();
+      showApp();
+    }
+
+    function logoutUser() {
+      currentUsername = null;
+      persistSave(SESSION_KEY, null);
+      document.getElementById('auth-username').value = '';
+      document.getElementById('auth-password').value = '';
+      document.getElementById('auth-error').classList.add('hidden');
+      setAuthMode('login');
+      document.getElementById('app-shell').classList.add('hidden');
+      document.getElementById('auth-overlay').classList.remove('hidden');
+    }
+
+    function showApp() {
+      document.getElementById('auth-overlay').classList.add('hidden');
+      document.getElementById('app-shell').classList.remove('hidden');
+
+      const avatar = document.getElementById('profile-avatar');
+      const nameEl = document.getElementById('profile-username');
+      if (avatar) avatar.innerText = currentUsername.slice(0, 2).toUpperCase();
+      if (nameEl) nameEl.innerText = currentUsername;
+
+      if (scheduleState[currentDayName]) {
+        activeScheduleDay = currentDayName;
+      } else {
+        activeScheduleDay = 'Monday';
+      }
+      selectScheduleDay(activeScheduleDay);
+      populateLinkCards();
+      renderTasks();
+      renderGradeCards();
+    }
+    // ================== END LOCAL ACCOUNT SYSTEM ==================
+
+    // RENDER TASKS IN KANBAN & TO-DO PANEL
+    function renderTasks() {
+      const highCol = document.getElementById('col-high');
+      const medCol = document.getElementById('col-med');
+      const lowCol = document.getElementById('col-low');
+
+      highCol.innerHTML = '';
+      medCol.innerHTML = '';
+      lowCol.innerHTML = '';
+
+      const filtered = tasksState.filter(t => t.category === currentTaskFilter);
+
+      let hCount = 0, mCount = 0, lCount = 0;
+
+      filtered.forEach(task => {
+        const cardHTML = `
+          <div class="task-card bg-white dark:bg-[#2a1613] p-4 rounded-xl shadow-sm border border-red-100 dark:border-red-900/40 cursor-grab active:cursor-grabbing hover:shadow-md transform hover:scale-[1.02] transition-all relative group" data-id="${task.id}">
+            <div class="flex justify-between items-start">
+              <span class="text-[10px] font-bold text-brand-800 dark:text-brand-200 bg-brand-50 dark:bg-brand-900/60 px-2 py-0.5 rounded-full uppercase truncate max-w-[140px]">${task.subject}</span>
+              <button onclick="deleteTask(${task.id})" class="text-gray-300 dark:text-gray-600 hover:text-rose-500 dark:hover:text-rose-400 transition-colors p-1" title="Delete Task">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+            <h4 class="font-semibold text-sm text-gray-800 dark:text-red-100 mt-2">${task.title}</h4>
+            <div class="flex items-center justify-between text-xs text-gray-400 dark:text-red-400/60 mt-3 pt-2 border-t border-gray-100 dark:border-red-900/40">
+              <span><i class="fa-regular fa-clock mr-1"></i>${task.dueDate || 'Upcoming'}</span>
+              <i class="fa-solid fa-grip-vertical text-gray-300"></i>
+            </div>
+          </div>
+        `;
+
+        if (task.priority === 'high') {
+          highCol.innerHTML += cardHTML;
+          hCount++;
+        } else if (task.priority === 'med') {
+          medCol.innerHTML += cardHTML;
+          mCount++;
+        } else {
+          lowCol.innerHTML += cardHTML;
+          lCount++;
+        }
+      });
+
+      document.getElementById('count-high').innerText = hCount;
+      document.getElementById('count-med').innerText = mCount;
+      document.getElementById('count-low').innerText = lCount;
+
+      // Render Dedicated To-Do Panel List
+      const todoListContainer = document.getElementById('todo-full-list');
+      if (todoListContainer) {
+        if (tasksState.length === 0) {
+          todoListContainer.innerHTML = `<div class="p-8 text-center text-gray-400 font-medium">No tasks found. Add a task above or through the AI assistant!</div>`;
+        } else {
+          todoListContainer.innerHTML = tasksState.map(task => {
+            const prioBadge = task.priority === 'high' 
+              ? '<span class="bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">High Priority</span>'
+              : task.priority === 'med'
+              ? '<span class="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">Med Priority</span>'
+              : '<span class="bg-red-100 text-brand-800 dark:bg-red-900/40 dark:text-red-300 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">Low Priority</span>';
+
+            return `
+              <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-red-950/40 rounded-2xl border border-red-100 dark:border-red-900/30 hover:shadow-md transition-all">
+                <div class="flex items-center space-x-3">
+                  <button onclick="deleteTask(${task.id})" class="w-6 h-6 rounded-lg border border-red-300 dark:border-red-700 flex items-center justify-center text-transparent hover:text-red-600 hover:border-red-600 transition-all shrink-0" title="Mark Complete">
+                    <i class="fa-solid fa-check text-xs"></i>
+                  </button>
+                  <div>
+                    <h4 class="font-bold text-sm text-gray-800 dark:text-red-100">${task.title}</h4>
+                    <p class="text-xs text-gray-400 dark:text-red-400/60 mt-0.5">${task.subject} • <i class="fa-regular fa-clock"></i> ${task.dueDate || 'No Date'} • <span class="capitalize">${task.category}</span></p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                  ${prioBadge}
+                  <button onclick="deleteTask(${task.id})" class="text-gray-400 hover:text-rose-500 dark:hover:text-rose-400 p-2 transition-colors" title="Delete task">
+                    <i class="fa-solid fa-trash-can text-sm"></i>
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+    }
+
+    function toggleQuickTaskForm() {
+      document.getElementById('quick-task-bar').classList.toggle('hidden');
+    }
+
+    function submitQuickTask() {
+      const title = document.getElementById('q-task-title').value.trim();
+      const subject = document.getElementById('q-task-subject').value.trim() || 'General';
+      const priority = document.getElementById('q-task-prio').value;
+      const dueDate = document.getElementById('q-task-date').value.trim() || 'Upcoming';
+
+      if (!title) return;
+
+      tasksState.push({
+        id: Date.now(),
+        title,
+        subject,
+        priority,
+        category: currentTaskFilter,
+        dueDate
+      });
+
+      document.getElementById('q-task-title').value = '';
+      document.getElementById('q-task-subject').value = '';
+      document.getElementById('q-task-date').value = '';
+      toggleQuickTaskForm();
+      renderTasks();
+      saveTasksState();
+    }
+
+    function addNewTaskManual(e) {
+      e.preventDefault();
+      const title = document.getElementById('todo-title').value.trim();
+      const subject = document.getElementById('todo-subject').value.trim();
+      const priority = document.getElementById('todo-priority').value;
+      const category = document.getElementById('todo-category').value;
+      const dueDate = document.getElementById('todo-date').value.trim() || 'Upcoming';
+
+      if (!title) return;
+
+      tasksState.push({
+        id: Date.now(),
+        title,
+        subject,
+        priority,
+        category,
+        dueDate
+      });
+
+      document.getElementById('todo-title').value = '';
+      document.getElementById('todo-subject').value = '';
+      document.getElementById('todo-date').value = '';
+      renderTasks();
+      saveTasksState();
+    }
+
+    function deleteTask(id) {
+      tasksState = tasksState.filter(t => t.id !== id);
+      renderTasks();
+      saveTasksState();
+    }
+
+    function filterTasks(type) {
+      currentTaskFilter = type;
+      const tabAcad = document.getElementById('tab-acad');
+      const tabPers = document.getElementById('tab-pers');
+      if(type === 'academic') {
+        tabAcad.className = "px-3 py-1 rounded-lg bg-white dark:bg-red-800 shadow-sm text-brand-800 dark:text-white transition-all transform hover:scale-[1.05]";
+        tabPers.className = "px-3 py-1 rounded-lg text-gray-500 dark:text-red-300/60 hover:text-gray-800 transition-all transform hover:scale-[1.05]";
+      } else {
+        tabPers.className = "px-3 py-1 rounded-lg bg-white dark:bg-red-800 shadow-sm text-brand-800 dark:text-white transition-all transform hover:scale-[1.05]";
+        tabAcad.className = "px-3 py-1 rounded-lg text-gray-500 dark:text-red-300/60 hover:text-gray-800 transition-all transform hover:scale-[1.05]";
+      }
+      renderTasks();
+    }
+
+    // ===================== GEMINI ASSISTANT (REAL API, CLIENT-SIDE) =====================
+    const GEMINI_MODEL = 'gemini-2.0-flash';
+
+    const GEMINI_SYSTEM_PROMPT = `You are the assistant embedded in a personal productivity web app called Academix Hub. The user may just want to chat, or may want you to add something to their app. Respond ONLY with a single raw JSON object — no markdown code fences, no extra commentary — matching exactly this schema:
+{
+  "action": "add_task" | "add_class" | "add_note" | "add_meet" | "add_chat" | "none",
+  "data": { ...fields depending on action, omit entirely if action is "none"... },
+  "reply": "a short, friendly natural-language reply to show the user"
+}
+
+Field shapes per action:
+- add_task: { "title": string, "subject": string, "priority": "high"|"med"|"low", "category": "academic"|"personal", "dueDate": string }
+- add_class: { "day": "Monday"|"Tuesday"|"Wednesday"|"Thursday"|"Friday"|"Saturday", "code": string, "title": string, "time": string, "room": string, "type": "lecture"|"lab"|"online"|"break" }
+- add_note: { "subject": string, "url": string }
+- add_meet: { "subject": string, "url": string }
+- add_chat: { "subject": string, "url": string }
+- none: omit "data" entirely, just chat normally in "reply"
+
+Only use an add_* action when the user is clearly asking you to add, create, or schedule something for the app. Otherwise use "none" and just have a normal conversation in "reply". Always fill in every field for the chosen action — infer sensible values for anything the user didn't specify.`;
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.innerText = str == null ? '' : String(str);
+      return div.innerHTML;
+    }
+
+    function getGeminiKeyStorageKey() {
+      return getUserKey('geminiApiKey');
+    }
+
+    async function getStoredGeminiKey() {
+      const key = await persistLoad(getGeminiKeyStorageKey());
+      return (typeof key === 'string' && key.trim()) ? key.trim() : null;
+    }
+
+    async function promptForGeminiKey() {
+      const entered = window.prompt("Enter your Gemini API key (from Google AI Studio: aistudio.google.com/apikey).\nIt's saved only in this browser and sent directly to Google's API — never to any server of ours.");
+      if (entered && entered.trim()) {
+        const key = entered.trim();
+        await persistSave(getGeminiKeyStorageKey(), key);
+        return key;
+      }
+      return null;
+    }
+
+    async function ensureGeminiKey() {
+      let key = await getStoredGeminiKey();
+      if (!key) key = await promptForGeminiKey();
+      return key;
+    }
+
+    async function changeGeminiKey() {
+      await promptForGeminiKey();
+    }
+
+    async function callGeminiAPI(apiKey, userText) {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      const body = {
+        contents: [{ role: 'user', parts: [{ text: userText }] }],
+        systemInstruction: { parts: [{ text: GEMINI_SYSTEM_PROMPT }] }
+      };
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      if (!res.ok) {
+        let detail = '';
+        try { detail = (await res.json())?.error?.message || ''; } catch (e) { /* ignore */ }
+        throw new Error(detail || `HTTP ${res.status}`);
+      }
+
+      const json = await res.json();
+      return json?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+    }
+
+    function parseAiResponse(rawText) {
+      let cleaned = (rawText || '').trim();
+      cleaned = cleaned.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '').trim();
+      try {
+        const parsed = JSON.parse(cleaned);
+        if (parsed && typeof parsed === 'object' && typeof parsed.reply === 'string') return parsed;
+      } catch (err) {
+        // Not valid JSON — fall back to treating the raw text as a plain reply.
+      }
+      return { action: 'none', reply: cleaned || "Sorry, I didn't catch that." };
+    }
+
+    // Executes an add_* action against local app state and returns a short
+    // confirmation string, or null if there was nothing to do.
+    function performAiAction(action, data) {
+      data = data || {};
+      switch (action) {
+        case 'add_task': {
+          const title = data.title || 'Untitled Task';
+          const subject = data.subject || 'General';
+          const priority = ['high', 'med', 'low'].includes(data.priority) ? data.priority : 'med';
+          const category = ['academic', 'personal'].includes(data.category) ? data.category : 'academic';
+          const dueDate = data.dueDate || 'Upcoming';
+          tasksState.push({ id: Date.now(), title, subject, priority, category, dueDate });
+          renderTasks();
+          saveTasksState();
+          return `Added task "${title}"`;
+        }
+        case 'add_class': {
+          const day = (data.day && scheduleState.hasOwnProperty(data.day)) ? data.day : activeScheduleDay;
+          const type = ['lecture', 'lab', 'online', 'break'].includes(data.type) ? data.type : 'lecture';
+          const item = { id: Date.now(), time: data.time || 'TBA', code: data.code || 'Untitled', title: data.title || 'Untitled Class', room: data.room || 'TBA', type };
+          if (!scheduleState[day]) scheduleState[day] = [];
+          scheduleState[day].push(item);
+          if (day === activeScheduleDay) renderSchedule();
+          saveScheduleState();
+          return `Added class "${item.title}" to ${day}`;
+        }
+        case 'add_note': {
+          const subject = data.subject || 'Untitled';
+          notesState.push({ id: Date.now(), subject, url: data.url || '#' });
+          populateLinkCards();
+          saveNotesState();
+          return `Added note "${subject}"`;
+        }
+        case 'add_meet': {
+          const subject = data.subject || 'Untitled';
+          meetsState.push({ id: Date.now(), subject, url: data.url || '#' });
+          populateLinkCards();
+          saveMeetsState();
+          return `Added Meet link "${subject}"`;
+        }
+        case 'add_chat': {
+          const subject = data.subject || 'Untitled';
+          chatsState.push({ id: Date.now(), subject, url: data.url || '#' });
+          populateLinkCards();
+          saveChatsState();
+          return `Added group chat "${subject}"`;
+        }
+        default:
+          return null;
+      }
+    }
+
+    async function processAiInput() {
+      const inputEl = document.getElementById('ai-input');
+      const input = inputEl.value.trim();
+      if (!input) return;
+
+      const feed = document.getElementById('ai-feed');
+      feed.innerHTML += `<div class="bg-gray-100 dark:bg-red-900/40 p-3 rounded-2xl text-gray-700 dark:text-red-200 font-medium">${escapeHtml(input)}</div>`;
+      inputEl.value = '';
+      feed.scrollTop = feed.scrollHeight;
+
+      const apiKey = await ensureGeminiKey();
+      if (!apiKey) {
+        feed.innerHTML += `<div class="bg-rose-50 dark:bg-rose-950/40 p-3 rounded-2xl border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 text-xs">I need a Gemini API key to respond — click the key icon above to add one.</div>`;
+        feed.scrollTop = feed.scrollHeight;
+        return;
+      }
+
+      const thinkingId = `thinking-${Date.now()}`;
+      feed.innerHTML += `<div id="${thinkingId}" class="bg-red-50 dark:bg-red-950/60 p-3 rounded-2xl border border-red-100 dark:border-red-900/40 text-red-900 dark:text-red-200 text-xs italic">Thinking…</div>`;
+      feed.scrollTop = feed.scrollHeight;
+
+      try {
+        const rawText = await callGeminiAPI(apiKey, input);
+        const parsed = parseAiResponse(rawText);
+
+        let actionNote = '';
+        if (parsed.action && parsed.action !== 'none') {
+          const result = performAiAction(parsed.action, parsed.data);
+          if (result) actionNote = `<div class="mt-1.5 pt-1.5 border-t border-red-200/60 dark:border-red-800/40 text-[10px] font-bold text-brand-700 dark:text-brand-300">✨ ${escapeHtml(result)}</div>`;
+        }
+
+        const thinkingEl = document.getElementById(thinkingId);
+        if (thinkingEl) {
+          thinkingEl.outerHTML = `<div class="bg-red-50 dark:bg-red-950/60 p-3 rounded-2xl border border-red-100 dark:border-red-900/40 text-red-900 dark:text-red-200">${escapeHtml(parsed.reply)}${actionNote}</div>`;
+        }
+      } catch (err) {
+        console.error('Gemini request failed:', err);
+        const thinkingEl = document.getElementById(thinkingId);
+        const message = `Sorry, something went wrong talking to Gemini${err && err.message ? ' (' + err.message + ')' : ''}.`;
+        if (thinkingEl) {
+          thinkingEl.outerHTML = `<div class="bg-rose-50 dark:bg-rose-950/40 p-3 rounded-2xl border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 text-xs">${escapeHtml(message)}</div>`;
+        }
+      }
+
+      feed.scrollTop = feed.scrollHeight;
+    }
+    // ================== END GEMINI ASSISTANT ==================
+
+
+    // RENDER LINKS & GROUP CHATS
+    function populateLinkCards() {
+      // Notes Cards
+      const notesHTML = notesState.map(doc => `
+        <div class="relative group">
+          <a href="${doc.url}" target="_blank" rel="noopener noreferrer" class="bg-white dark:bg-[#2a1613] p-5 rounded-2xl border border-red-100 dark:border-red-800/40 shadow-sm hover:shadow-md transform hover:scale-[1.03] transition-all block">
+            <div class="flex justify-between items-start">
+              <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                <i class="fa-solid fa-file-word text-lg"></i>
+              </div>
+              <i class="fa-solid fa-arrow-up-right-from-square text-xs text-gray-300 dark:text-red-600"></i>
+            </div>
+            <h4 class="font-semibold text-gray-800 dark:text-red-100 mt-3 text-sm">${doc.subject}</h4>
+            <p class="text-[11px] text-gray-400 dark:text-red-400/60 mt-1">Google Docs Notes</p>
+          </a>
+          <button onclick="deleteNote(${doc.id})" class="absolute top-2 right-2 w-6 h-6 rounded-lg bg-white/90 dark:bg-[#221310]/90 text-gray-300 dark:text-gray-600 hover:text-rose-500 dark:hover:text-rose-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" title="Delete Note">
+            <i class="fa-solid fa-trash-can text-xs"></i>
+          </button>
+        </div>
+      `).join('');
+      
+      const notesPreviewHTML = notesState.slice(0, 3).map(doc => `
+        <a href="${doc.url}" target="_blank" rel="noopener noreferrer" class="bg-white dark:bg-[#2a1613] p-5 rounded-2xl border border-red-100 dark:border-red-800/40 shadow-sm hover:shadow-md transform hover:scale-[1.03] transition-all block">
+          <div class="flex justify-between items-start">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+              <i class="fa-solid fa-file-word text-lg"></i>
+            </div>
+            <i class="fa-solid fa-arrow-up-right-from-square text-xs text-gray-300 dark:text-red-600"></i>
+          </div>
+          <h4 class="font-semibold text-gray-800 dark:text-red-100 mt-3 text-sm">${doc.subject}</h4>
+          <p class="text-[11px] text-gray-400 dark:text-red-400/60 mt-1">Google Docs Notes</p>
+        </a>
+      `).join('');
+      document.getElementById('dashboard-notes-grid').innerHTML = notesPreviewHTML;
+      document.getElementById('full-notes-grid').innerHTML = notesHTML;
+      const notesCountEl = document.getElementById('notes-total-count');
+      if (notesCountEl) notesCountEl.innerText = notesState.length;
+
+      // Meet Cards
+      const meetsHTML = meetsState.map(meet => `
+        <div class="relative group flex items-center">
+          <a href="${meet.url}" target="_blank" rel="noopener noreferrer" class="flex-1 flex items-center justify-between p-3.5 rounded-xl bg-red-50/60 dark:bg-red-950/40 hover:bg-red-100/80 dark:hover:bg-red-900/60 transition-all text-sm font-medium text-red-900 dark:text-red-100 border border-red-100/50 dark:border-red-900/30">
+            <div class="flex items-center space-x-3 truncate">
+              <i class="fa-solid fa-camera-retro text-red-600 dark:text-red-400"></i>
+              <span class="truncate">${meet.subject}</span>
+            </div>
+            <i class="fa-solid fa-external-link text-xs opacity-60"></i>
+          </a>
+          <button onclick="deleteMeet(${meet.id})" class="ml-2 w-6 h-6 shrink-0 rounded-lg text-gray-300 dark:text-gray-600 hover:text-rose-500 dark:hover:text-rose-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" title="Delete Link">
+            <i class="fa-solid fa-trash-can text-xs"></i>
+          </button>
+        </div>
+      `).join('');
+
+      document.getElementById('dashboard-meets-list').innerHTML = meetsHTML;
+      document.getElementById('full-meets-grid').innerHTML = meetsHTML;
+
+      // Group Chat Cards
+      const chatsHTML = chatsState.map(chat => `
+        <div class="relative group flex items-center">
+          <a href="${chat.url}" target="_blank" rel="noopener noreferrer" class="flex-1 flex items-center justify-between p-3.5 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 hover:bg-blue-100/80 dark:hover:bg-blue-900/40 transition-all text-sm font-medium text-blue-900 dark:text-blue-200 border border-blue-100/50 dark:border-blue-900/30">
+            <div class="flex items-center space-x-3 truncate">
+              <i class="fa-brands fa-facebook-messenger text-blue-600 dark:text-blue-400"></i>
+              <span class="truncate">${chat.subject}</span>
+            </div>
+            <i class="fa-solid fa-external-link text-xs opacity-60"></i>
+          </a>
+          <button onclick="deleteChat(${chat.id})" class="ml-2 w-6 h-6 shrink-0 rounded-lg text-gray-300 dark:text-gray-600 hover:text-rose-500 dark:hover:text-rose-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" title="Delete Chat">
+            <i class="fa-solid fa-trash-can text-xs"></i>
+          </button>
+        </div>
+      `).join('');
+
+      document.getElementById('dashboard-chats-list').innerHTML = chatsHTML;
+      document.getElementById('full-chats-grid').innerHTML = chatsHTML;
+    }
+
+    // NOTES CRUD
+    function toggleQuickNoteForm() {
+      document.getElementById('quick-note-bar').classList.toggle('hidden');
+    }
+
+    function submitQuickNote() {
+      const subject = document.getElementById('c-note-subject').value.trim();
+      const url = document.getElementById('c-note-url').value.trim() || '#';
+      if (!subject) return;
+      notesState.push({ id: Date.now(), subject, url });
+      document.getElementById('c-note-subject').value = '';
+      document.getElementById('c-note-url').value = '';
+      toggleQuickNoteForm();
+      populateLinkCards();
+      saveNotesState();
+    }
+
+    function deleteNote(id) {
+      notesState = notesState.filter(n => n.id !== id);
+      populateLinkCards();
+      saveNotesState();
+    }
+
+    // MEET LINKS CRUD
+    function toggleQuickMeetForm() {
+      document.getElementById('quick-meet-bar').classList.toggle('hidden');
+    }
+
+    function submitQuickMeet() {
+      const subject = document.getElementById('c-meet-subject').value.trim();
+      const url = document.getElementById('c-meet-url').value.trim() || '#';
+      if (!subject) return;
+      meetsState.push({ id: Date.now(), subject, url });
+      document.getElementById('c-meet-subject').value = '';
+      document.getElementById('c-meet-url').value = '';
+      toggleQuickMeetForm();
+      populateLinkCards();
+      saveMeetsState();
+    }
+
+    function deleteMeet(id) {
+      meetsState = meetsState.filter(m => m.id !== id);
+      populateLinkCards();
+      saveMeetsState();
+    }
+
+    // GROUP CHATS CRUD
+    function toggleQuickChatForm() {
+      document.getElementById('quick-chat-bar').classList.toggle('hidden');
+    }
+
+    function submitQuickChat() {
+      const subject = document.getElementById('c-chat-subject').value.trim();
+      const url = document.getElementById('c-chat-url').value.trim() || '#';
+      if (!subject) return;
+      chatsState.push({ id: Date.now(), subject, url });
+      document.getElementById('c-chat-subject').value = '';
+      document.getElementById('c-chat-url').value = '';
+      toggleQuickChatForm();
+      populateLinkCards();
+      saveChatsState();
+    }
+
+    function deleteChat(id) {
+      chatsState = chatsState.filter(c => c.id !== id);
+      populateLinkCards();
+      saveChatsState();
+    }
+
+    // DYNAMIC GRADE TRACKER RENDERER
+    function renderGradeCards() {
+      const container = document.getElementById('grades-cards-container');
+      container.innerHTML = '';
+
+      gradesState.forEach((course, subIdx) => {
+        const csAvg = course.cs.length > 0 ? (course.cs.reduce((acc, item) => acc + item.score, 0) / course.cs.length) : 0;
+        const examAvg = course.exam.length > 0 ? (course.exam.reduce((acc, item) => acc + item.score, 0) / course.exam.length) : 0;
+        const finalGrade = (csAvg * 0.50) + (examAvg * 0.50);
+
+        const card = document.createElement('div');
+        card.className = "bg-white dark:bg-[#221310] p-6 rounded-3xl border border-red-100 dark:border-red-800/40 shadow-sm space-y-4 transform hover:scale-[1.01] transition-all";
+
+        card.innerHTML = `
+          <div class="flex justify-between items-center border-b border-gray-100 dark:border-red-900/40 pb-3">
+            <h3 class="font-bold text-lg text-gray-900 dark:text-white">${course.subject}</h3>
+            <div class="flex items-center gap-2">
+              <span class="px-3 py-1 bg-brand-100 dark:bg-red-900 text-brand-900 dark:text-red-100 font-extrabold text-sm rounded-full">
+                ${finalGrade.toFixed(1)}%
+              </span>
+              <button onclick="deleteSubject(${subIdx})" class="text-gray-300 dark:text-gray-600 hover:text-rose-500 dark:hover:text-rose-400 p-1 transition-colors" title="Delete Subject">
+                <i class="fa-solid fa-trash-can text-sm"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-xs font-bold text-gray-600 dark:text-red-300 uppercase tracking-wider">
+              <span>Class Standing (50%) • Avg: ${csAvg.toFixed(1)}%</span>
+              <button onclick="addScoreItem(${subIdx}, 'cs')" class="text-brand-700 dark:text-brand-400 hover:underline flex items-center gap-1 text-xs">
+                <i class="fa-solid fa-plus text-[10px]"></i> Add Activity
+              </button>
+            </div>
+            <div class="space-y-1.5">
+              ${course.cs.map(item => `
+                <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-red-950/50 rounded-xl gap-2 text-xs">
+                  <input type="text" value="${item.name}" onchange="updateScoreItem(${subIdx}, 'cs', ${item.id}, 'name', this.value)" class="bg-transparent text-gray-800 dark:text-red-100 font-medium w-full focus:outline-none">
+                  <div class="flex items-center space-x-1 shrink-0">
+                    <input type="number" value="${item.score}" onchange="updateScoreItem(${subIdx}, 'cs', ${item.id}, 'score', parseFloat(this.value) || 0)" class="w-12 p-1 border rounded-lg text-center font-bold text-brand-800 dark:bg-red-900 dark:text-white dark:border-red-700">
+                    <button onclick="deleteScoreItem(${subIdx}, 'cs', ${item.id})" class="text-rose-400 hover:text-rose-600 p-1">
+                      <i class="fa-solid fa-trash text-xs"></i>
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="space-y-2 pt-2 border-t border-gray-50 dark:border-red-900/20">
+            <div class="flex justify-between items-center text-xs font-bold text-gray-600 dark:text-red-300 uppercase tracking-wider">
+              <span>Exams (50%) • Avg: ${examAvg.toFixed(1)}%</span>
+              <button onclick="addScoreItem(${subIdx}, 'exam')" class="text-brand-700 dark:text-brand-400 hover:underline flex items-center gap-1 text-xs">
+                <i class="fa-solid fa-plus text-[10px]"></i> Add Exam
+              </button>
+            </div>
+            <div class="space-y-1.5">
+              ${course.exam.map(item => `
+                <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-red-950/50 rounded-xl gap-2 text-xs">
+                  <input type="text" value="${item.name}" onchange="updateScoreItem(${subIdx}, 'exam', ${item.id}, 'name', this.value)" class="bg-transparent text-gray-800 dark:text-red-100 font-medium w-full focus:outline-none">
+                  <div class="flex items-center space-x-1 shrink-0">
+                    <input type="number" value="${item.score}" onchange="updateScoreItem(${subIdx}, 'exam', ${item.id}, 'score', parseFloat(this.value) || 0)" class="w-12 p-1 border rounded-lg text-center font-bold text-brand-800 dark:bg-red-900 dark:text-white dark:border-red-700">
+                    <button onclick="deleteScoreItem(${subIdx}, 'exam', ${item.id})" class="text-rose-400 hover:text-rose-600 p-1">
+                      <i class="fa-solid fa-trash text-xs"></i>
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // SCORE MANIPULATION FUNCTIONS
+    function addScoreItem(subIdx, category) {
+      gradesState[subIdx][category].push({ id: Date.now(), name: category === 'cs' ? 'New Activity' : 'New Exam', score: 90 });
+      renderGradeCards();
+      saveGradesState();
+    }
+
+    function updateScoreItem(subIdx, category, itemId, field, value) {
+      const item = gradesState[subIdx][category].find(i => i.id === itemId);
+      if (item) {
+        item[field] = value;
+        renderGradeCards();
+        saveGradesState();
+      }
+    }
+
+    function deleteScoreItem(subIdx, category, itemId) {
+      gradesState[subIdx][category] = gradesState[subIdx][category].filter(i => i.id !== itemId);
+      renderGradeCards();
+      saveGradesState();
+    }
+
+    // SUBJECT (COURSE) MANIPULATION FUNCTIONS
+    function toggleQuickSubjectForm() {
+      document.getElementById('quick-subject-bar').classList.toggle('hidden');
+    }
+
+    function submitQuickSubject() {
+      const name = document.getElementById('c-subject-name').value.trim();
+      if (!name) return;
+      gradesState.push({ subject: name, cs: [], exam: [] });
+      document.getElementById('c-subject-name').value = '';
+      toggleQuickSubjectForm();
+      renderGradeCards();
+      saveGradesState();
+    }
+
+    function deleteSubject(subIdx) {
+      gradesState.splice(subIdx, 1);
+      renderGradeCards();
+      saveGradesState();
+    }
+
+    // UTILITY FUNCTIONS
+    function toggleDarkMode() { document.documentElement.classList.toggle('dark'); }
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('hidden'); }
+    function capitalizeWords(str) { return str.replace(/\b\w/g, l => l.toUpperCase()); }
+
+    function toggleAiPanel() {
+      const panel = document.getElementById('ai-panel');
+      if (panel.classList.contains('w-0')) {
+        panel.classList.remove('w-0', 'p-0', 'overflow-hidden', 'opacity-0');
+        panel.classList.add('w-full', 'md:w-80');
+      } else {
+        panel.classList.add('w-0', 'p-0', 'overflow-hidden', 'opacity-0');
+        panel.classList.remove('w-full', 'md:w-80');
+      }
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.view-panel').forEach(panel => panel.classList.add('hidden'));
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-brand-800', 'text-white', 'shadow-md');
+        btn.classList.add('text-gray-600', 'dark:text-red-200/80');
+      });
+
+      const activeView = document.getElementById(`view-${tabName}`);
+      const activeNav = document.getElementById(`nav-${tabName}`);
+      
+      if (activeView) activeView.classList.remove('hidden');
+      if (activeNav) {
+        activeNav.classList.add('bg-brand-800', 'text-white', 'shadow-md');
+        activeNav.classList.remove('text-gray-600', 'dark:text-red-200/80');
+      }
+    }
+
+    // KANBAN DRAG AND DROP
+    ['col-high', 'col-med', 'col-low'].forEach(colId => {
+      new Sortable(document.getElementById(colId), {
+        group: 'kanban',
+        animation: 150,
+        ghostClass: 'bg-brand-50'
+      });
+    });
+
+    // DISPLAY TODAY'S DATE & AUTO SET SCHEDULE DAY
+    const today = new Date();
+    document.getElementById('current-date').innerText = today.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+
+    const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const currentDayName = daysOfWeek[today.getDay()];
+
+    // INITIAL SETUP — ensure demo account exists, then either restore a
+    // logged-in session or leave the auth screen showing.
+    (async function init() {
+      setAuthMode('login');
+      await ensureDemoAccount();
+
+      const savedSession = await persistLoad(SESSION_KEY);
+      if (savedSession) {
+        const accounts = await loadAccounts();
+        if (accounts.hasOwnProperty(savedSession)) {
+          await logInAs(savedSession);
+          return;
+        }
+      }
+      // No valid session — auth-overlay stays visible, app-shell stays hidden.
+    })();
+  </script>
+</body>
+</html>
