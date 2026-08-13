@@ -605,12 +605,14 @@
       renderTasks();
     }
 
-    // ===================== GEMINI ASSISTANT (REAL API, CLIENT-SIDE) =====================
-    const GEMINI_MODEL = 'gemini-3.6-flash';
-
-    // Pre-filled so it works immediately — still stored per-account in this
-    // browser's storage, and can be overridden via the key icon any time.
-    const BUILT_IN_GEMINI_API_KEY = 'AQ.Ab8RN6JIDK7okfyVzcahJB_DB-kToqLrfaGs1W2240-j47m5bA';
+    // ===================== GEMINI ASSISTANT (VIA CLOUDFLARE WORKER PROXY) =====================
+    // The real Gemini API key now lives server-side in the Worker's secrets —
+    // never in this file, never in the browser. This file only knows the
+    // Worker's public URL, which is safe to expose.
+    //
+    // >>> PASTE YOUR DEPLOYED WORKER URL BELOW, replacing the placeholder <<<
+    // It looks like: https://academix-gemini-proxy.YOUR-SUBDOMAIN.workers.dev
+    const GEMINI_PROXY_URL = 'https://academix-gemini-proxy.coolgmrc.workers.dev';
 
     const GEMINI_SYSTEM_PROMPT = `You are the assistant embedded in a personal productivity web app called Academix Hub. The user may just want to chat, or may want you to add or delete something in the app. You have access to the recent conversation history, so you can resolve follow-ups like "delete that one" or "actually make it high priority" using earlier context. Respond ONLY with a single raw JSON object — no markdown code fences, no extra commentary — matching exactly this schema:
 {
@@ -641,49 +643,22 @@ Only use an add_*/delete_* action when the user is clearly asking you to add, cr
       return div.innerHTML;
     }
 
-    function getGeminiKeyStorageKey() {
-      return getUserKey('geminiApiKey');
-    }
-
-    async function getStoredGeminiKey() {
-      const key = await persistLoad(getGeminiKeyStorageKey());
-      return (typeof key === 'string' && key.trim()) ? key.trim() : null;
-    }
-
-    async function promptForGeminiKey() {
-      const entered = window.prompt("Enter your Gemini API key (from Google AI Studio: aistudio.google.com/apikey).\nIt's saved only in this browser and sent directly to Google's API — never to any server of ours.");
-      if (entered && entered.trim()) {
-        const key = entered.trim();
-        await persistSave(getGeminiKeyStorageKey(), key);
-        return key;
-      }
-      return null;
-    }
-
-    async function ensureGeminiKey() {
-      let key = await getStoredGeminiKey();
-      if (!key) {
-        key = BUILT_IN_GEMINI_API_KEY;
-        await persistSave(getGeminiKeyStorageKey(), key);
-      }
-      return key;
-    }
-
-    async function changeGeminiKey() {
-      await promptForGeminiKey();
-    }
-
     // `contents` is the running conversation as an array of
     // { role: 'user' | 'model', parts: [{ text }] } — Gemini uses this to
     // stay coherent across turns (e.g. "delete that one" referring back).
-    async function callGeminiAPI(apiKey, contents) {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    // This now calls YOUR Worker instead of Google directly — the Worker
+    // attaches the real key server-side and forwards the request.
+    async function callGeminiAPI(contents) {
+      if (GEMINI_PROXY_URL.includes('YOUR-WORKER-NAME')) {
+        throw new Error('Set GEMINI_PROXY_URL in app.js to your deployed Worker URL first.');
+      }
+
       const body = {
         contents,
         systemInstruction: { parts: [{ text: GEMINI_SYSTEM_PROMPT }] }
       };
 
-      const res = await fetch(endpoint, {
+      const res = await fetch(GEMINI_PROXY_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -691,7 +666,7 @@ Only use an add_*/delete_* action when the user is clearly asking you to add, cr
 
       if (!res.ok) {
         let detail = '';
-        try { detail = (await res.json())?.error?.message || ''; } catch (e) { /* ignore */ }
+        try { detail = (await res.json())?.error?.message || (await res.clone().json())?.error || ''; } catch (e) { /* ignore */ }
         throw new Error(detail || `HTTP ${res.status}`);
       }
 
@@ -858,20 +833,13 @@ Only use an add_*/delete_* action when the user is clearly asking you to add, cr
       aiHistory.push({ role: 'user', text: input });
       if (aiHistory.length > AI_HISTORY_LIMIT) aiHistory = aiHistory.slice(-AI_HISTORY_LIMIT);
 
-      const apiKey = await ensureGeminiKey();
-      if (!apiKey) {
-        feed.innerHTML += `<div class="bg-rose-50 dark:bg-rose-950/40 p-3 rounded-2xl border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 text-xs">I need a Gemini API key to respond — click the key icon above to add one.</div>`;
-        feed.scrollTop = feed.scrollHeight;
-        return;
-      }
-
       const thinkingId = `thinking-${Date.now()}`;
       feed.innerHTML += `<div id="${thinkingId}" class="bg-red-50 dark:bg-red-950/60 p-3 rounded-2xl border border-red-100 dark:border-red-900/40 text-red-900 dark:text-red-200 text-xs italic">Thinking…</div>`;
       feed.scrollTop = feed.scrollHeight;
 
       try {
         const contents = aiHistory.map(m => ({ role: m.role, parts: [{ text: m.text }] }));
-        const rawText = await callGeminiAPI(apiKey, contents);
+        const rawText = await callGeminiAPI(contents);
         const parsed = parseAiResponse(rawText);
 
         let actionNote = '';
@@ -1236,4 +1204,5 @@ Only use an add_*/delete_* action when the user is clearly asking you to add, cr
         }
       }
       // No valid session — auth-overlay stays visible, app-shell stays hidden.
+      // Gemini API thingy is in line number 615-----------------------------
     })();
