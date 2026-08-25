@@ -612,7 +612,7 @@
     //
     // >>> PASTE YOUR DEPLOYED WORKER URL BELOW, replacing the placeholder <<<
     // It looks like: https://academix-gemini-proxy.YOUR-SUBDOMAIN.workers.dev
-    const GEMINI_PROXY_URL = 'https://academix-gemini-proxy.coolgmrc.workers.dev';
+    const GEMINI_PROXY_URL = 'https://academix-gemini-proxy.coolgmrc.workers.dev/';
 
     const GEMINI_SYSTEM_PROMPT = `You are the assistant embedded in a personal productivity web app called Academix Hub. The user may just want to chat, or may want you to add or delete something in the app. You have access to the recent conversation history, so you can resolve follow-ups like "delete that one" or "actually make it high priority" using earlier context. Respond ONLY with a single raw JSON object — no markdown code fences, no extra commentary — matching exactly this schema:
 {
@@ -666,7 +666,10 @@ Only use an add_*/delete_* action when the user is clearly asking you to add, cr
 
       if (!res.ok) {
         let detail = '';
-        try { detail = (await res.json())?.error?.message || (await res.clone().json())?.error || ''; } catch (e) { /* ignore */ }
+        try {
+          const errJson = await res.json();
+          detail = errJson?.error?.message || (typeof errJson?.error === 'string' ? errJson.error : '') || '';
+        } catch (e) { /* body wasn't JSON — leave detail empty, fall back to status code below */ }
         throw new Error(detail || `HTTP ${res.status}`);
       }
 
@@ -1204,5 +1207,4 @@ Only use an add_*/delete_* action when the user is clearly asking you to add, cr
         }
       }
       // No valid session — auth-overlay stays visible, app-shell stays hidden.
-      // Gemini API thingy is in line number 615-----------------------------
     })();
