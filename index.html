@@ -38,6 +38,21 @@
 </head>
 <body class="bg-[#f4f7f4] dark:bg-[#1a0f0e] text-gray-800 dark:text-red-100 font-sans antialiased h-screen overflow-hidden">
 
+  <!-- PORTFOLIO DEMO NOTICE -->
+  <div id="ai-demo-notice" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4">
+    <div class="w-full max-w-sm bg-white dark:bg-[#221310] p-6 rounded-3xl border border-red-100 dark:border-red-800/40 shadow-lg space-y-4 text-center">
+      <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center mx-auto">
+        <i class="fa-solid fa-triangle-exclamation text-amber-600 dark:text-amber-400 text-lg"></i>
+      </div>
+      <div>
+        <h2 class="font-bold text-gray-900 dark:text-white text-lg">Heads up — AI Assistant is offline</h2>
+        <p class="text-sm text-gray-500 dark:text-red-300/70 mt-2">This site is a portfolio demo, so the Gemini-powered assistant feature is switched off here. It's fully built behind the scenes and can be turned on if you'd like to see it in action — just ask.</p>
+      </div>
+      <button onclick="document.getElementById('ai-demo-notice').remove()" class="w-full bg-brand-800 hover:bg-brand-900 text-white font-bold py-3 rounded-xl transition-all transform hover:scale-[1.02]">Got it</button>
+    </div>
+  </div>
+
+
   <!-- AUTH SCREEN (LOCAL ACCOUNTS, NO BACKEND) -->
   <div id="auth-overlay" class="h-screen w-screen flex items-center justify-center p-4 bg-[#f4f7f4] dark:bg-[#1a0f0e]">
     <div class="w-full max-w-sm bg-white dark:bg-[#221310] p-8 rounded-3xl border border-red-100 dark:border-red-800/40 shadow-lg space-y-6">
